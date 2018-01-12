@@ -1,11 +1,16 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const passport = require('passport');
 mongoose.Promise = global.Promise;
 
 const blogRouter = express.Router();
 
 const { BlogPost, UserInfo } = require('../models');
+
+const { localStrategy, jwtStrategy } = require('../strategies/strategies');
+
+
 
 blogRouter.get('/posts', (req, res) => {
     BlogPost
@@ -67,7 +72,6 @@ blogRouter.delete('/posts/:id', (req, res) => {
         });
 });
 
-
 blogRouter.put('/posts/:id', (req, res) => {
     if (!(req.params.id && req.body.id && req.params.id === req.body.id)) {
         res.status(400).json({
@@ -88,7 +92,6 @@ blogRouter.put('/posts/:id', (req, res) => {
         .then(updatedPost => res.status(204).end())
         .catch(err => res.status(500).json({ message: 'Something went wrong' }));
 });
-
 
 blogRouter.post('/users', function (req, res) {
     const requiredFields = ['username','firstName','lastName','password'];

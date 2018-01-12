@@ -18,89 +18,22 @@ const { JWT_EXPIRY } = require('./config');
 const { DATABASE_URL, PORT } = require('./config');
 const { BlogPost, UserInfo } = require('./models');
 const { blogRouter } = require('./router/blogRouter');
+const { authRouter } = require('./router/authRouter');
+const { localStrategy, jwtStrategy } = require('./strategies/strategies');
+
 const app = express();
+
 
 app.use(morgan('common'));
 app.use(bodyParser.json());
 app.use('/api/', blogRouter );
-
-//=====ROUTER=====//
-const createAuthToken = function(user) {
-    return jwt.sign({user}, JWT_SECRET, {
-        subject: user.username,
-        expiresIn: JWT_EXPIRY,
-        algorithm: 'HS256'
-    });
-};
+app.use('/auth/', authRouter);
 
 
 
-// ===== Define and create basicStrategy =====
-const localStrategy = new LocalStrategy((username, password, done) => {
-    let user;
-    UserInfo
-        .findOne({ username })
-        .then(results => {
-            user = results;
+//ading this on app.user
+// multiple instance of jwtAuth
 
-            if (!user) {
-                return Promise.reject({
-                    reason: 'LoginError',
-                    message: 'Incorrect username',
-                    location: 'username'
-                });
-            }
-
-            return user.validatePassword(password);
-        })
-        .then(isValid => {
-            if (!isValid) {
-                return Promise.reject({
-                    reason: 'LoginError',
-                    message: 'Incorrect password',
-                    location: 'password'
-                });
-            }
-            return done(null, user);
-        })
-        .catch(err => {
-            if (err.reason === 'LoginError') {
-                return done(null, false);
-            }
-
-            return done(err);
-
-        });
-});
-
-const jwtStrategy = new JwtStrategy(
-    {
-        secretOrKey: JWT_SECRET,
-        // Look for the JWT as a Bearer auth header
-        jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme('Bearer'),
-        // Only allow HS256 tokens - the same as the ones we issue
-        algorithms: ['HS256']
-    },
-    (payload, done) => {
-        done(null, payload.user);
-    }
-);
-
-passport.use(localStrategy);
-passport.use(jwtStrategy);
-
-const jwtAuth = passport.authenticate('jwt', {session: false});
-const localAuth = passport.authenticate('local', { session: false });
-app.post('/login', localAuth, (req, res) => {
-    console.log(JWT_SECRET);
-    const authToken = createAuthToken(req.user.serialize());
-    res.json({authToken});
-});
-
-app.post('/refresh', jwtAuth, (req, res) => {
-    const authToken = createAuthToken(req.user);
-    res.json({authToken});
-});
 
 app.use('*', function (req, res) {
     res.status(404).json({ message: 'Not Found' });
