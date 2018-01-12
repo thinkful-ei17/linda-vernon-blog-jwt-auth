@@ -2,32 +2,45 @@
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+mongoose.Promise = global.Promise;
 
-const userSchema = mongoose.Schema({
-    "username": {type: String, required: true},
-    "password": {type: String, required: true},
-    "firstName": {type: String, default: ''},
-    "lastName": {type: String, default: ''}
-}
-);
+const UserSchema = mongoose.Schema({
+  username:{
+    type: String,
+    required: true,
+    unique:true
+  },
+  firstName:{
+    type:String,
+    required: true,
+    default:''
+  },
+  lastName: {
+    type: String,
+    required: true,
+    default: ''
+  },
+  password:{
+    type: String,
+    required: true
+  }
+});
 
-userSchema.methods.serialize=function(){
-  return {
-    username: this.username,
+UserSchema.methods.serialize = function(){
+  return{
+    username:this.username,
     firstName: this.firstName,
     lastName: this.lastName
   };
 };
 
-userSchema.statics.hashPassword = function(password){
-  return bcrypt.hash(password, 10);
+UserSchema.methods.validatePassword = function(password){
+  return bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.validatePassword = function(password){
-  console.log(`This password is ${this.password}`);
-  console.log("in validatePassword; given : " + password);
-  return bcrypt.compare(password, this.password);
-  //return this.password === password;
+UserSchema.statics.hashPassword = function(password){
+  console.log(password);
+  return bcrypt.hash(password, 10);
 };
 
 const blogPostSchema = mongoose.Schema({
@@ -55,8 +68,7 @@ blogPostSchema.methods.serialize = function () {
   };
 };
 
-// const BlogPost = mongoose.model('BlogPosts', blogPostSchema);
-const BlogPost = mongoose.model('Posts', blogPostSchema);
-const UserModel = mongoose.model('User', userSchema);
+const BlogPost = mongoose.model('BlogPost', blogPostSchema);
+const UserInfo = mongoose.model('UserInfo', UserSchema);
 
-module.exports = { BlogPost, UserModel };
+module.exports = { BlogPost, UserInfo };
