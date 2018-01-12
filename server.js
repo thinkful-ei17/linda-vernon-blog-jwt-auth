@@ -91,14 +91,14 @@ const jwtStrategy = new JwtStrategy(
 passport.use(jwtStrategy);
 
 app.post('/login', localAuth, (req, res) => {
-  console.log(JWT_SECRET);
-  const authToken = createAuthToken(req.user.serialize());
-  res.json({authToken});
+    console.log(JWT_SECRET);
+    const authToken = createAuthToken(req.user.serialize());
+    res.json({authToken});
 });
 
 app.post('/refresh', jwtAuth, (req, res) => {
-  const authToken = createAuthToken(req.user);
-  res.json({authToken});
+    const authToken = createAuthToken(req.user);
+    res.json({authToken});
 });
 
 app.get('/posts', (req, res) => {
