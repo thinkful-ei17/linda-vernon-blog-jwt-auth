@@ -8,9 +8,11 @@ const blogRouter = express.Router();
 
 const { BlogPost, UserInfo } = require('../models');
 
-const { localStrategy, jwtStrategy } = require('../strategies/strategies');
+const { jwtStrategy } = require('../strategies/strategies');
 
+passport.use(jwtStrategy);
 
+const jwtAuth = passport.authenticate('jwt', {session: false});
 
 blogRouter.get('/posts', (req, res) => {
     BlogPost
@@ -34,7 +36,7 @@ blogRouter.get('/posts/:id', (req, res) => {
         });
 });
 
-blogRouter.post('/posts', (req, res) => {
+blogRouter.post('/posts', jwtAuth, (req, res) => {
     const requiredFields = ['title', 'content', 'author'];
     for (let i = 0; i < requiredFields.length; i++) {
         const field = requiredFields[i];
@@ -60,7 +62,7 @@ blogRouter.post('/posts', (req, res) => {
 });
 
 
-blogRouter.delete('/posts/:id', (req, res) => {
+blogRouter.delete('/posts/:id', jwtAuth, (req, res) => {
     BlogPost
         .findByIdAndRemove(req.params.id)
         .then(() => {
@@ -72,7 +74,7 @@ blogRouter.delete('/posts/:id', (req, res) => {
         });
 });
 
-blogRouter.put('/posts/:id', (req, res) => {
+blogRouter.put('/posts/:id', jwtAuth, (req, res) => {
     if (!(req.params.id && req.body.id && req.params.id === req.body.id)) {
         res.status(400).json({
             error: 'Request path id and request body id values must match'
@@ -89,11 +91,11 @@ blogRouter.put('/posts/:id', (req, res) => {
 
     BlogPost
         .findByIdAndUpdate(req.params.id, { $set: updated }, { new: true })
-        .then(updatedPost => res.status(204).end())
+        .then(updatedPost => res.status(201).json(updatedPost.serialize()))
         .catch(err => res.status(500).json({ message: 'Something went wrong' }));
 });
 
-blogRouter.post('/users', function (req, res) {
+blogRouter.post('/users', jwtAuth, function (req, res) {
     const requiredFields = ['username','firstName','lastName','password'];
 
     const missingField = requiredFields.find(field =>!(field in req.body));
