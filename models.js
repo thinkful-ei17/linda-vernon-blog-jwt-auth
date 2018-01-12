@@ -68,6 +68,10 @@ blogPostSchema.methods.serialize = function () {
   };
 };
 
+
+
+
+
 const BlogPost = mongoose.model('BlogPost', blogPostSchema);
 const UserInfo = mongoose.model('UserInfo', UserSchema);
 

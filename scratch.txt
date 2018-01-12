@@ -1,0 +1,4 @@
+Picking up where you left off yesterday, add JWT to your blog app.
+Create a login endpoint which returns a JWT
+Create a refresh endpoint to allow users to refresh their JWT
+Update the .put(), post() and .delete() endpoints to use JWTs instead of basic (username and password)
